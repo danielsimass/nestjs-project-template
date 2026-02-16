@@ -17,7 +17,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUserByEmail = await this.usersRepository.findByEmail(
-      createUserDto.email
+      createUserDto.email,
     );
 
     if (existingUserByEmail) {
@@ -25,7 +25,7 @@ export class UsersService {
     }
 
     const existingUserByUsername = await this.usersRepository.findByUsername(
-      createUserDto.username
+      createUserDto.username,
     );
 
     if (existingUserByUsername) {
@@ -74,7 +74,7 @@ export class UsersService {
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.usersRepository.findByEmail(
-        updateUserDto.email
+        updateUserDto.email,
       );
 
       if (existingUser) {
@@ -84,7 +84,7 @@ export class UsersService {
 
     if (updateUserDto.username && updateUserDto.username !== user.username) {
       const existingUser = await this.usersRepository.findByUsername(
-        updateUserDto.username
+        updateUserDto.username,
       );
 
       if (existingUser) {
@@ -98,14 +98,14 @@ export class UsersService {
 
   async changePassword(
     userId: string,
-    changePasswordDto: ChangePasswordDto
+    changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     const user = await this.findOne(userId);
 
     if (user.password) {
       const isPasswordValid = await bcrypt.compare(
         changePasswordDto.currentPassword,
-        user.password
+        user.password,
       );
 
       if (!isPasswordValid) {

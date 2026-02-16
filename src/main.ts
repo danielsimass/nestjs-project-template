@@ -15,7 +15,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    })
+    }),
   );
 
   app.enableCors({
@@ -36,7 +36,7 @@ async function bootstrap() {
       content: document,
       cdn: 'https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest',
       theme: 'elysiajs',
-    })
+    }),
   );
 
   const port = process.env.PORT || 3000;

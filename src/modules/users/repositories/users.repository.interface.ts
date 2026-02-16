@@ -1,5 +1,5 @@
 import { User } from '../entities/user.entity';
-import { UserCreateData, UserUpdateData } from './types';
+import { UserCreateData } from './types';
 
 export interface IUsersRepository {
   /**

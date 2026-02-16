@@ -9,7 +9,7 @@ import { UserCreateData } from './types';
 export class UsersRepository implements IUsersRepository {
   constructor(
     @InjectRepository(User)
-    private readonly repository: Repository<User>
+    private readonly repository: Repository<User>,
   ) {}
 
   create(data: UserCreateData): User {

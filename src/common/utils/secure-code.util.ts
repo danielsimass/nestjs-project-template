@@ -53,7 +53,7 @@ export class SecureCodeUtil {
    */
   static createTimeLimitedCode(
     codeLength: number = 6,
-    expirationMinutes: number = 15
+    expirationMinutes: number = 15,
   ): { code: string; expiresAt: Date } {
     const code = this.generateCode(codeLength);
     const expiresAt = new Date();
