@@ -15,7 +15,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-app_user} -d ${DB_DATABASE:-app_db}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USERNAME:-app_user} -d ${DB_DATABASE:-app_db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,9 +32,6 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
-    environment:
-      - DB_HOST=postgres
-      - DOCKER_ENV=true
     env_file:
       - .env
     volumes:

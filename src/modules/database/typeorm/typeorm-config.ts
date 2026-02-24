@@ -28,6 +28,4 @@ export const typeOrmConfig: DataSourceOptions = {
   ssl: process.env.DB_SSL === 'true',
   migrations: [`${__dirname}/../migrations/**`],
   namingStrategy: new SnakeCaseNamingStrategy(),
-  synchronize: process.env.DB_SYNCHRONIZE === 'true',
-  logging: process.env.DB_LOGGING === 'true',
 };

@@ -1,18 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../modules/users/users.service';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { User } from '../modules/users/entities/user.entity';
-import { SecureCodeUtil } from '../common/utils';
+import { User } from '../users/entities/user.entity';
+import { SecureCodeUtil } from '../../common/utils/secure-code.util';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<User> {
@@ -29,17 +29,24 @@ export class AuthService {
 
     // If user doesn't have a password, they can't login normally
     if (!user.password) {
-      throw new UnauthorizedException('User needs to set password on first access');
+      throw new UnauthorizedException(
+        'User needs to set password on first access',
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
     return user;
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; user: AuthResponseDto }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; user: AuthResponseDto }> {
     const user = await this.validateUser(loginDto);
 
     const payload: JwtPayload = {
@@ -66,15 +73,17 @@ export class AuthService {
     };
   }
 
-  async validateToken(token: string): Promise<JwtPayload> {
+  validateToken(token: string): JwtPayload {
     try {
       return this.jwtService.verify<JwtPayload>(token);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid token');
     }
   }
 
-  async refreshToken(userId: string): Promise<{ accessToken: string }> {
+  async refreshToken(
+    userId: string,
+  ): Promise<{ accessToken: string; user: AuthResponseDto }> {
     const user = await this.usersService.findOne(userId);
 
     if (!user || !user.isActive) {
@@ -90,10 +99,24 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload);
 
-    return { accessToken };
+    const authResponse: AuthResponseDto = {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isFirstLogin: user.isFirstLogin,
+      requiresPasswordSetup: !user.password,
+    };
+
+    return {
+      accessToken,
+      user: authResponse,
+    };
   }
 
-  async checkFirstLogin(username: string): Promise<{ requiresPasswordSetup: boolean }> {
+  async checkFirstLogin(
+    username: string,
+  ): Promise<{ requiresPasswordSetup: boolean }> {
     let user = await this.usersService.findByEmail(username);
     if (!user) {
       user = await this.usersService.findByUsername(username);
@@ -113,7 +136,7 @@ export class AuthService {
   async setFirstPassword(
     username: string,
     password: string,
-    secureCode: string
+    secureCode: string,
   ): Promise<{ accessToken: string; user: AuthResponseDto }> {
     let user = await this.usersService.findByEmail(username);
     if (!user) {
@@ -127,19 +150,22 @@ export class AuthService {
     }
     if (user.password) {
       throw new UnauthorizedException(
-        'User already has a password. Use the normal login flow.'
+        'User already has a password. Use the normal login flow.',
       );
     }
 
     // Check if user has a secure code
     if (!user.secureCode) {
       throw new UnauthorizedException(
-        'Verification code was not generated. Request a new invite.'
+        'Verification code was not generated. Request a new invite.',
       );
     }
 
     // Validate secure code
-    const isCodeValid = await SecureCodeUtil.verifyCode(secureCode, user.secureCode);
+    const isCodeValid = await SecureCodeUtil.verifyCode(
+      secureCode,
+      user.secureCode,
+    );
     if (!isCodeValid) {
       throw new UnauthorizedException('Invalid verification code');
     }
